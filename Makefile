@@ -11,11 +11,17 @@ dropdb:
 	@echo "Database dropped"
 
 migrateup:
-	migrate -path db/migration -database "postgresql://postgres:5463@localhost:5432/simple_bank?sslmode=disable" -verbose   force 1
+	migrate -path db/migration -database "postgresql://postgres:5463@localhost:5432/simple_bank?sslmode=disable" -verbose up    
+
 
 migratedown:
-	migrate -path db/migration -database "postgresql://postgres:5463@localhost:5432/simple_bank?sslmode=disable" -verbose force 1
+	migrate -path db/migration -database "postgresql://postgres:5463@localhost:5432/simple_bank?sslmode=disable" -verbose  down
 	
-.PHONY: createdb dropdb migrateup migratedown
+sqlc:
+	docker run --rm -v $(pwd):/src -w /src kjconroy/sqlc generate
+
+
+.PHONY: createdb dropdb migrateup migratedown sqlc
+
 
 
