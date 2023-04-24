@@ -37,24 +37,27 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	return tx.Commit()
 
 }
-
 type TransferTxParams struct {
 	FromAccountID int64 `json:"from_account_id"`
 	ToAccountID   int64 `json:"to_account_id"`
 	Amount        int64 `json:"amount"`
-}	
-type TransferResults struct {
-	FromAccount Account `json:"from_account"`
-	ToAccount   Account `json:"to_account"`
+}
+
+// TransferTxResult is the result of the transfer transaction
+type TransferTxResult struct {
 	Transfer    Transfer `json:"transfer"`
+	FromAccount Account  `json:"from_account"`
+	ToAccount   Account  `json:"to_account"`
+	FromEntry   Entry    `json:"from_entry"`
+	ToEntry     Entry    `json:"to_entry"`
 }
 
 // func to transfer money from one account to another
-func (store *Store) TransferTx( ctx context.Context, arg TransferTxParams) (TransferResults,error){
-	var results TransferResults
+func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+	var result TransferTxResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
-		results.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
+		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
 			ToAccountID:   arg.ToAccountID,
 			Amount:        arg.Amount,
@@ -64,8 +67,7 @@ func (store *Store) TransferTx( ctx context.Context, arg TransferTxParams) (Tran
 			return err
 		}
 
-		// update the balance of the from account
-		fromAccount, err := q.CreateEntry(ctx, CreateEntryParams{
+		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount,
 		})
@@ -73,27 +75,20 @@ func (store *Store) TransferTx( ctx context.Context, arg TransferTxParams) (Tran
 		if err != nil {
 			return err
 		}
-		results.FromAccount = fromAccount
-		// update the balance of the to account
-		toAccount, err := q.CreateEntry(ctx, CreateEntryParams{
 
+		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountID,
 			Amount:    arg.Amount,
 		})
-
-
-
 
 		if err != nil {
 			return err
 		}
 
-		// todo: update the balance of the to account
-
-	
+		// update the from account's balance todo
 		return nil
+
 	})
-	return results, err
+	return result, err
+
 }
-
-

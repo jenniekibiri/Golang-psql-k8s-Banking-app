@@ -18,7 +18,7 @@ migratedown:
 	migrate -path db/migration -database "postgresql://postgres:5463@localhost:5432/simple_bank?sslmode=disable" -verbose  down
 	
 sqlc:
-	docker run --rm -v $(pwd):/src -w /src kjconroy/sqlc generate
+	docker run --rm -v "%cd%:/src" -w /src kjconroy/sqlc generate
 
 test: 
 	go test -v -cover ./... 
