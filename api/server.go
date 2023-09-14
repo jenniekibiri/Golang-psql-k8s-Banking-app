@@ -13,6 +13,7 @@ type Server struct {
 func NewServer(store *db.Store) *Server {
 	server := &Server{store: store}
 	router := gin.Default()
+	router.Use(gin.Recovery())
 	router.POST("/accounts", server.createAccount)
 	router.GET("/account/:id", server.getAccount)
 	router.GET("/accounts", server.listAccounts)
